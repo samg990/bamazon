@@ -1,5 +1,7 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
+var Table = require("cli-table");
+var table = new Table();
 
 var connection = mysql.createConnection({
   host: "localhost",
@@ -16,8 +18,16 @@ var connection = mysql.createConnection({
 
 connection.connect(function(err) {
   if (err) throw err;
-  runSearch();
+  loadProducts();
 });
+
+function loadProducts() {
+  var query = "SELECT * FROM products";
+  connection.query(query, function(err, res) {
+    console.log(res);
+  });
+  runSearch();
+}
 
 function runSearch() {
   inquirer
@@ -44,6 +54,18 @@ function amount() {
       message: "How many of this product would you like?",
     })
     .then(function(answer) {
-      console.log("Units Chosen: " + answer.units);
+      var qnt = answer.units;
+      var query = "SELECT stock_quantity FROM products WHERE ?";
+      connnection.query(
+        query,
+        { stock_quantity: answer.stock_quantity },
+        function(err, res) {
+          {
+            var upd = res[0].stock_quantity - qnt;
+            console.log(upd);
+          }
+        },
+      );
+      console.log("Units Chosen: " + qnt);
     });
 }
